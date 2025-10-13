@@ -2579,6 +2579,8 @@ static int ventoy_set_default_menu(void)
 
             vtoy_ssprintf(g_tree_script_buf, g_tree_script_pos, "set default=%c", '\'');
 
+vtoy_ssprintf(g_tree_script_buf, g_tree_script_pos, "set default=%c", '\'');
+
             strdata = ventoy_get_env("VTOY_DEFAULT_SEARCH_ROOT");
             if (strdata && strdata[0] == '/')
             {
@@ -2590,7 +2592,13 @@ static int ventoy_set_default_menu(void)
             }
             else
             {
-                pos = def + 1;
+                // 当VTOY_DEFAULT_SEARCH_ROOT不存在或无效时，默认使用/iso路径
+                strdata = "/iso";
+                pos = def + grub_strlen(strdata);
+                if (*pos == '/')
+                {
+                    pos++;
+                }
             }
 
             while ((end = grub_strchr(pos, '/')) != NULL)
@@ -2915,8 +2923,14 @@ static grub_err_t ventoy_cmd_list_img(grub_extcmd_context_t ctxt, int argc, char
     }
     else
     {
-        g_img_iterator_head.dirlen = 1;
-        grub_strcpy(g_img_iterator_head.dir, "/"); 
+        // 当VTOY_DEFAULT_SEARCH_ROOT不存在或无效时，默认使用/iso路径
+        strdata = "/iso";
+        len = grub_snprintf(g_img_iterator_head.dir, sizeof(g_img_iterator_head.dir) - 1, "%s", strdata);
+        if (g_img_iterator_head.dir[len - 1] != '/')
+        {
+            g_img_iterator_head.dir[len++] = '/';
+        }
+        g_img_iterator_head.dirlen = len;
     }
 
     g_img_iterator_head.tail = &tail;
