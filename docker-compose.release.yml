@@ -1,0 +1,11 @@
+version: '2'
+
+services:
+  ventoy:
+    build:
+      context: .              # 构建上下文目录
+      dockerfile: Dockerfile.release # 指定特定的 Dockerfile
+
+    privileged: true
+    volumes:
+     - .:/ventoy
