@@ -1,0 +1,10 @@
+version: '2'
+
+services:
+  ventoy:
+    build:
+      context: .
+      dockerfile: Dockerfile.release
+    privileged: true
+    volumes:
+     - .:/ventoy
