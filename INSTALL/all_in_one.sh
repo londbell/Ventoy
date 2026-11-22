@@ -71,7 +71,7 @@ sh build_aarch64.sh  >> $LOG 2>&1
 cd $VTOY_PATH/INSTALL
 
 if [ "$1" = "CI" ]; then
-    Ver=$(date +%m%d%H%M)
+    Ver=$(grep 'set.*VENTOY_VERSION=' ./grub/grub.cfg | awk -F'"' '{print $2}' | sed 's/\(-X\)*$//')-X
     sed "s/VENTOY_VERSION=.*/VENTOY_VERSION=\"$Ver\"/"  -i ./grub/grub.cfg
 fi
 
