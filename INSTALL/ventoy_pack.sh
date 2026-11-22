@@ -122,7 +122,16 @@ done
 
 format_ventoy_disk_mbr 0 $LOOP fdisk
 
-$GRUB_DIR/sbin/grub-bios-setup  --skip-fs-probe  --directory="./grub/i386-pc"  $LOOP
+if [ ! -f ./grub/i386-pc/boot.img ] || [ ! -f ./grub/i386-pc/core.img ]; then
+    echo "ERROR: ./grub/i386-pc/boot.img or core.img missing, cannot build BIOS boot chain" >&2
+    ls -l ./grub/i386-pc/ 2>&1 | head -20 >&2
+    exit 1
+fi
+
+$GRUB_DIR/sbin/grub-bios-setup  --skip-fs-probe  --directory="./grub/i386-pc"  $LOOP || {
+    echo "ERROR: grub-bios-setup failed, MBR would be empty" >&2
+    exit 1
+}
 
 curver=$(get_ventoy_version_from_cfg ./grub/grub.cfg)
 
@@ -239,6 +248,19 @@ mkdir -p $tmpdir/ventoy
 echo $curver > $tmpdir/ventoy/version
 dd if=$LOOP of=$tmpdir/boot/boot.img bs=1 count=512  status=none
 dd if=$LOOP of=$tmpdir/boot/core.img bs=512 count=2047 skip=1 status=none
+
+# 校验 BIOS 引导链，避免再产出 MBR 全 0 的坏包
+if [ "$(od -An -tx1 -N3 $tmpdir/boot/boot.img | tr -d ' \n')" != "eb6390" ]; then
+    echo "ERROR: boot.img 前 3 字节不是 eb6390，BIOS 引导链没写进去" >&2
+    od -An -tx1 -N16 $tmpdir/boot/boot.img >&2
+    exit 1
+fi
+
+if [ "$(od -An -tx1 -N16 $tmpdir/boot/core.img | tr -d ' \n')" = "00000000000000000000000000000000" ]; then
+    echo "ERROR: core.img 前 16 字节全 0，grub-bios-setup 没有写入" >&2
+    exit 1
+fi
+
 xz --check=crc32 $tmpdir/boot/core.img
 
 cp $OPT ./tool $tmpdir/
