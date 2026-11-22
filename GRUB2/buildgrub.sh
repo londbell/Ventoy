@@ -24,7 +24,7 @@ make distclean
 ./autogen.sh
 ./configure  --with-platform=efi --prefix=$VT_GRUB_DIR/INSTALL/
 make -j 16 || exit 1
-sh install.sh  uefi
+sh install.sh  uefi || exit 1
 
 
 #build for i386-efi
@@ -33,7 +33,7 @@ make distclean
 ./autogen.sh
 ./configure --target=i386 --with-platform=efi  --prefix=$VT_GRUB_DIR/INSTALL/
 make -j 16 || exit 1
-sh install.sh  i386efi
+sh install.sh  i386efi || exit 1
 
 
 
@@ -52,7 +52,7 @@ TARGET_OBJCOPY=aarch64-linux-gnu-objcopy \
 TARGET_STRIP=aarch64-linux-gnu-strip TARGET_NM=aarch64-linux-gnu-nm \
 TARGET_RANLIB=aarch64-linux-gnu-ranlib
 make -j 16 || exit 1
-sh install.sh arm64
+sh install.sh arm64 || exit 1
 
 
 #build for mips64el EFI
@@ -69,7 +69,7 @@ TARGET_OBJCOPY=mips-linux-gnu-objcopy \
 TARGET_STRIP=mips-linux-gnu-strip TARGET_NM=mips-linux-gnu-nm \
 TARGET_RANLIB=mips-linux-gnu-ranlib
 make -j 16 || exit 1
-sh install.sh mips64el
+sh install.sh mips64el || exit 1
 
 
 
