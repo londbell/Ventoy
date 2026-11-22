@@ -1,0 +1,41 @@
+name: Ventoy Custom Release
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build upstream Docker environment
+        run: docker build --tag ventoy-custom-release .
+      - name: Build custom release
+        # Match the upstream GRUB script's existing installation prefix.
+        run: >-
+          docker run --rm --privileged
+          --volume "$GITHUB_WORKSPACE:/home/share/Ventoy"
+          --workdir /home/share/Ventoy/INSTALL
+          ventoy-custom-release
+          sh docker_release_build.sh
+      - name: Upload release packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: ventoy-1.1.18-X
+          if-no-files-found: error
+          path: |
+            INSTALL/ventoy-1.1.18-X-windows.zip
+            INSTALL/ventoy-1.1.18-X-linux.tar.gz
+            INSTALL/ventoy-1.1.18-X-livecd.iso
+            INSTALL/sha256.txt
+      - name: Upload build log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: xxx-build-log
+          if-no-files-found: warn
+          path: DOC/build.log
