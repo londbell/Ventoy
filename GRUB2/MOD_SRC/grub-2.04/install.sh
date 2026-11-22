@@ -42,6 +42,7 @@ elif [ "$1" = "mips64el" ]; then
     grub-mkimage -v --directory "$VT_DIR/GRUB2/INSTALL/lib/grub/mips64el-efi" --prefix '(,2)/grub' --output "$VT_DIR/INSTALL/EFI/BOOT/BOOTMIPS.EFI"  --format 'mips64el-efi' --compression 'auto'  $all_modules_mips64el_uefi
 else
     all_modules="$net_modules_legacy $all_modules_legacy "
+    mkdir -p "$VT_DIR/INSTALL/grub/i386-pc"
     grub-mkimage -v --directory "$VT_DIR/GRUB2/INSTALL/lib/grub/i386-pc" --prefix '(,2)/grub' --output "$VT_DIR/INSTALL/grub/i386-pc/core.img"  --format 'i386-pc' --compression 'auto'  $all_modules_legacy  'fat' 'part_msdos' 'biosdisk' 
     
     #grub-mkimage -v --directory "$VT_DIR/GRUB2/INSTALL/lib/grub/i386-pc" -c "$VT_DIR/LiveCD/GRUB/embed.cfg" --prefix '/EFI/boot' --output "$VT_DIR/LiveCD/GRUB/cdrom.img"  --format 'i386-pc-eltorito' --compression 'auto'  $all_modules_legacy 'biosdisk' 'iso9660' 'fat' 'part_msdos'
@@ -136,4 +137,10 @@ else
             cp -a $VT_DIR/GRUB2/INSTALL/lib/grub/i386-pc/$line    $VT_DIR/INSTALL/grub/i386-pc/
         fi
     done
+
+    # BLOB 清理后 core.img 不再入库，而上面的 rm -rf 会把第 45 行生成的 core.img 一起删掉，
+    # 这里在目录重建完成后重新生成一次，否则 ventoy_pack.sh 里的 grub-bios-setup 会失败
+    grub-mkimage -v --directory "$VT_DIR/GRUB2/INSTALL/lib/grub/i386-pc" --prefix '(,2)/grub' \
+        --output "$VT_DIR/INSTALL/grub/i386-pc/core.img" --format 'i386-pc' --compression 'auto' \
+        $all_modules_legacy 'fat' 'part_msdos' 'biosdisk' || exit 1
 fi
